@@ -22,5 +22,8 @@
   "bugs": {
     "url": "https://github.com/Utkarsh212/azure-speech-utilities/issues"
   },
-  "homepage": "https://github.com/Utkarsh212/azure-speech-utilities#readme"
+  "homepage": "https://github.com/Utkarsh212/azure-speech-utilities#readme",
+  "dependencies": {
+    "microsoft-cognitiveservices-speech-sdk": "^1.35.0"
+  }
 }
