@@ -1,6 +1,6 @@
 {
   "name": "azure-speech-utilities",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Provides a convenient abstraction layer over the Microsoft Cognitive Services Speech SDK, simplifying the integration of speech-to-text functionality into client applications. Using this npm package, developers can quickly integrate speech-to-text capabilities into their applications without the need to write intricate code.",
   "main": "dist/index.js",
   "module": "dist/index.js",
