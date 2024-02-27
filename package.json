@@ -2,8 +2,11 @@
   "name": "azure-speech-utilities",
   "version": "0.0.0",
   "description": "Provides a convenient abstraction layer over the Microsoft Cognitive Services Speech SDK, simplifying the integration of speech-to-text functionality into client applications. Using this npm package, developers can quickly integrate speech-to-text capabilities into their applications without the need to write intricate code.",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
   "scripts": {
+    "build": "babel index.js -o dist/index.js",
+    "prepublishOnly": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -25,5 +28,10 @@
   "homepage": "https://github.com/Utkarsh212/azure-speech-utilities#readme",
   "dependencies": {
     "microsoft-cognitiveservices-speech-sdk": "^1.35.0"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.23.9",
+    "@babel/core": "^7.23.9",
+    "@babel/preset-env": "^7.23.9"
   }
 }
