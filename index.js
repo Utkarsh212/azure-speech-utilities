@@ -1,27 +1,30 @@
-import * as sdk from 'microsoft-cognitiveservices-speech-sdk'
+import * as sdk from "microsoft-cognitiveservices-speech-sdk"
 
 /**
- * Perform a single speech recognition operation.
- * @param {string} [cogSvcSubKey=""] - The subscription key for the Speech service. Default is an empty string.
- * @param {string} [cogSvcRegion=""] - The region for the Speech service. Default is an empty string.
- * @param {string[]} [recognitionLang=["en-US"]] - Array of language codes for recognition. Default is ["en-US"].
- * @returns {Promise<{type: string, message: string}>} A Promise that resolves with recognized text or rejects with an error.
+ * Creates a new speech recognizer instance.
+ *
+ * @param {string} [cogSvcSubKey=""] - Your Cognitive Services subscription key for Speech Services. (Required, default is "")
+ * @param {string} [cogSvcRegion=""] - The region for your Cognitive Services subscription. (Required, default is "")
+ * @param {string[]} [recognitionLang=["en-US"]] - An array of language recognition codes. (Optional, default is ["en-US"])
+ * @returns {sdk.SpeechRecognizer|undefined} - The speech recognizer instance, or undefined if errors occur.
+ * @throws {Error} - If an error occurs during configuration.
  */
-export async function RecognizeOnceAsync(cogSvcSubKey = "", cogSvcRegion = "", recognitionLang = ["en-US"]) {
-    return new Promise((resolve, reject) => {
+export function CreateRecognizer(cogSvcSubKey = "", cogSvcRegion = "", recognitionLang = ["en-US"]) {
+    if (!cogSvcSubKey || !cogSvcRegion) {
+        console.error("Please provide speech key and region.")
+        return undefined
+    }
 
-        if (!cogSvcSubKey || !cogSvcRegion) {
-            reject({ type: "error", message: 'Please provide speech key and region.' })
-        }
+    if (!recognitionLang.length) {
+        console.error("Please provide recognition language.")
+        return undefined
+    }
 
-        if (!recognitionLang.length) {
-            reject({ type: "error", message: 'Please provide recognition language.' })
-        }
+    let speechConfig = null
+    let audioConfig = null
+    let recognizer = null
 
-        let speechConfig = null
-        let audioConfig = null
-        let recognizer = null
-
+    try {
         if (recognitionLang.length > 1) {
             speechConfig = sdk.SpeechConfig.fromEndpoint(new URL(`wss://${cogSvcRegion}.stt.speech.microsoft.com/speech/universal/v2`), cogSvcSubKey)
             speechConfig.setProperty(sdk.PropertyId.SpeechServiceConnection_LanguageIdMode, "Continuous")
@@ -32,63 +35,60 @@ export async function RecognizeOnceAsync(cogSvcSubKey = "", cogSvcRegion = "", r
             speechConfig.speechRecognitionLanguage = recognitionLang[0]
             audioConfig = sdk.AudioConfig.fromMicrophoneInput()
             recognizer = new sdk.SpeechRecognizer(speechConfig, audioConfig)
+        }
+        return recognizer
+    } catch (error) {
+        console.error(error)
+        return undefined
+    }
+}
+
+/**
+ * Performs speech recognition once and returns the recognized text.
+ *
+ * @param {sdk.SpeechRecognizer} [recognizer] - The speech recognizer instance to use.
+ * @returns {Promise<{type: "text", message: string}| {type: "error", message: string}>} - A promise that resolves with the recognized text or an error message.
+ */
+export async function RecognizeOnceAsync(recognizer = undefined) {
+    return new Promise((resolve, reject) => {
+        if (!recognizer) {
+            reject({ type: "error", message: "ERROR: Unable to find recognizer." })
         }
 
         recognizer.recognizeOnceAsync(result => {
             if (result.reason === sdk.ResultReason.RecognizedSpeech) {
                 resolve({ type: "text", message: result.text })
             } else {
-                reject({ type: "error", message: 'ERROR: Speech was cancelled or could not be recognized. Ensure your microphone is working properly.' })
+                reject({ type: "error", message: "ERROR: Speech was cancelled or could not be recognized. Ensure your microphone is working properly." })
             }
         })
     })
 }
 
 /**
- * Perform continuous speech recognition.
- * @param {string} [cogSvcSubKey=""] - The subscription key for the Speech service. Default is an empty string.
- * @param {string} [cogSvcRegion=""] - The region for the Speech service. Default is an empty string.
- * @param {function} [callback=(value) => { console.log(value) }] - Callback function for recognized text. Default is a function that logs the value.
- * @param {string[]} [recognitionLang=["en-US"]] - Array of language codes for recognition. Default is ["en-US"].
- * @returns {Promise<{type: string, message: string}>} A Promise that resolves with recognized text or rejects with an error.
+ * Starts continuous speech recognition and provides callbacks for recognized and recognizing events.
+ *
+ * @param {sdk.SpeechRecognizer} [recognizer] - The speech recognizer instance to use.
+ * @param {(value: string) => void} [callbackRecognized=(value) => console.log(value)] - A callback function called with recognized text.
+ * @param {(value: string) => void} [callbackRecognizing=(value) => console.log(value)] - A callback function called while speech is being recognized.
+ * @returns {Promise<{type: "success", message: string} | {type: "error", message: string}>} - A promise that resolves with a success message or an error message.
  */
-export async function ContinuousRecognitionAsync(cogSvcSubKey = "", cogSvcRegion = "", callback = (value) => { console.log(value) }, recognitionLang = ["en-US"]) {
+export async function ContinuousRecognitionAsync(recognizer = undefined, callbackRecognized = (value) => { console.log(value) }, callbackRecognizing = (value) => { console.log(value) }) {
     return new Promise((resolve, reject) => {
 
-        if (!cogSvcSubKey || !cogSvcRegion) {
-            reject({ type: "error", message: 'Please provide speech key and region.' })
-        }
-
-        if (!recognitionLang.length) {
-            reject({ type: "error", message: 'Please provide recognition language.' })
-        }
-
-        let speechConfig = null
-        let audioConfig = null
-        let recognizer = null
-
-        if (recognitionLang.length > 1) {
-            speechConfig = sdk.SpeechConfig.fromEndpoint(new URL(`wss://${cogSvcRegion}.stt.speech.microsoft.com/speech/universal/v2`), cogSvcSubKey)
-            speechConfig.setProperty(sdk.PropertyId.SpeechServiceConnection_LanguageIdMode, "Continuous")
-            const autoDetectSourceLanguageConfig = sdk.AutoDetectSourceLanguageConfig.fromLanguages(recognitionLang)
-            recognizer = sdk.SpeechRecognizer.FromConfig(speechConfig, autoDetectSourceLanguageConfig, sdk.AudioConfig.fromMicrophoneInput())
-        } else {
-            speechConfig = sdk.SpeechConfig.fromSubscription(cogSvcSubKey, cogSvcRegion)
-            speechConfig.speechRecognitionLanguage = recognitionLang[0]
-            audioConfig = sdk.AudioConfig.fromMicrophoneInput()
-            recognizer = new sdk.SpeechRecognizer(speechConfig, audioConfig)
+        if (!recognizer) {
+            reject({ type: "error", message: "ERROR: Unable to find recognizer." })
         }
 
         recognizer.startContinuousRecognitionAsync()
 
         recognizer.recognizing = (s, e) => {
-            callback(e.result.text)
+            callbackRecognizing(e.result.text)
         }
 
         recognizer.recognized = (s, e) => {
             if (e.result.reason == sdk.ResultReason.RecognizedSpeech) {
-                resolve({ type: "text", message: e.result.text })
-                recognizer.stopContinuousRecognitionAsync()
+                callbackRecognized(e.result.text)
             }
             else if (e.result.reason == sdk.ResultReason.NoMatch) {
                 console.log("NOMATCH: Speech could not be recognized.")
@@ -111,5 +111,21 @@ export async function ContinuousRecognitionAsync(cogSvcSubKey = "", cogSvcRegion
             console.log("\n    Session stopped event.")
             recognizer.stopContinuousRecognitionAsync()
         }
+
+        resolve({ type: "success", message: "Continuous recognition started successfully." })
     })
+}
+
+/**
+ * Stops ongoing continuous speech recognition.
+ *
+ * @param {sdk.SpeechRecognizer} [recognizer] - The speech recognizer instance to use.
+ * @returns {void}
+ */
+export function StopContinuousRecognitionAsync(recognizer = undefined) {
+    if (!recognizer) {
+        console.error("ERROR: Unable to find recognizer.")
+        return
+    }
+    recognizer.stopContinuousRecognitionAsync()
 }
