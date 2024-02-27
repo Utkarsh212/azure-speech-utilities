@@ -1,0 +1,26 @@
+{
+  "name": "azure-speech-utilities",
+  "version": "0.0.0",
+  "description": "Provides a convenient abstraction layer over the Microsoft Cognitive Services Speech SDK, simplifying the integration of speech-to-text functionality into client applications. Using this npm package, developers can quickly integrate speech-to-text capabilities into their applications without the need to write intricate code.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Utkarsh212/azure-speech-utilities.git"
+  },
+  "keywords": [
+    "azure",
+    "speech",
+    "speechtotext",
+    "cognitive",
+    "multilingual"
+  ],
+  "author": "Utkarsh Pancholi",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Utkarsh212/azure-speech-utilities/issues"
+  },
+  "homepage": "https://github.com/Utkarsh212/azure-speech-utilities#readme"
+}
